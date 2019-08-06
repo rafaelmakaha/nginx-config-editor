@@ -5,70 +5,12 @@ var bodyParser = require('body-parser');
 
 const path = require('path');
 const passport = require('passport');
+const flash = require('connect-flash');
 const morgan = require('morgan');
-// const cookieParser = require('cookie-parser');
-// const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
-var okta = require("@okta/okta-sdk-nodejs");
-var ExpressOIDC = require("@okta/oidc-middleware").ExpressOIDC;
 
-
-//starts express
-var app = express();
-
-// okta configs
-var oktaClient = new okta.Client({
-    orgUrl: 'https://dev-543119.okta.com',
-    token: '00FWj8iu34A5192znyOHxEpQhrsIIj3ddxuQ4ssSkS'
-});
-
-const oidc = new ExpressOIDC({
-    issuer: "https://dev-543119.okta.com/oauth2/default",
-    client_id: "0oa129ra9cyIDY1hq357",
-    client_secret: "7gATp3gpz7XndgJhBT5BJXAmLT4IXopDeYMcgDO3",
-    redirect_uri: 'http://localhost:7676/app',
-    scope: "openid profile",
-    routes: {
-      login: {
-        path: "/login"
-      },
-      callback: {
-        path: "/app",
-        defaultRedirect: "/app"
-      }
-    }
-});
-
-app.use(session({
-    secret: 'asdf;lkjh3lkjh235l23h5l235kjh',
-    resave: true,
-    saveUninitialized: false
-}));
-
-app.use(oidc.router);
-
-app.use((req, res, next) => {
-    if (!req.userinfo) {
-      return next();
-    }
-  
-    oktaClient.getUser(req.userinfo.sub)
-      .then(user => {
-        req.user = user;
-        res.locals.user = user;
-        next();
-      }).catch(err => {
-        next(err);
-      });
-  });
-
-function loginRequired(req, res, next) {
-  if (!req.user) {
-    return res.status(401).render("unauthenticated");
-  }
-
-  next();
-}
+require('./app/passport')(passport);
 
 // load config file
 var config = require('./app/config.json');
@@ -93,8 +35,22 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'pug');
 //app.set('views', __dirname + '/public/views');
 
+app.use(morgan('dev'))
+app.use(cookieParser());
+app.use(session({
+    secret: 'alskd;13çla9sd4;123',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
 // Routes
-require('./app/routes')(loginRequired,app);
+require('./app/routes')(app, passport);
+
+// static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // IO
 require('./app/io')(io);

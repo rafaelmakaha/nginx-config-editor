@@ -1,5 +1,16 @@
 extends layout.pug
 
 block content
-    div(ng-controller="indexController")
-        h3 haha
+    .row
+        .col-md-6.col-md-offset-3
+            h1.display-4.m-b-2 Login
+                if {message}.length > 0 
+                    p {message}
+                form(action="/login", method="POST")
+                    div.form-group
+                        label(for="username") Usuário: 
+                        input#name.form-control(type="username", name="username", class="form-control")
+                    div.form-group
+                        label(for="password") Senha: 
+                        input#password.form-control(type="password", name="password", class="form-control")
+                    button.btn.btn-primary(type="submit") Enviar
