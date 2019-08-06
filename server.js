@@ -4,6 +4,15 @@ var app = express();
 var http = require('http');
 var bodyParser = require('body-parser');
 
+const path = require('path');
+const passport = require('passport');
+const flash = require('connect-flash');
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+
+require('./app/passport')(passport);
+
 // load config file
 var config = require('./app/config.json');
 
@@ -27,8 +36,22 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'pug');
 //app.set('views', __dirname + '/public/views');
 
+app.use(morgan('dev'))
+app.use(cookieParser());
+app.use(session({
+    secret: 'alskd;13çla9sd4;123',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
+
 // Routes
-require('./app/routes')(app);
+require('./app/routes')(app, passport);
+
+// static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // IO
 require('./app/io')(io);
