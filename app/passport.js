@@ -4,12 +4,12 @@ const LocalStrategy = require('passport-local').Strategy;
 module.exports = function(passport) {
     // serializer
     passport.serializeUser(function (user, done){
-        done(null, user)
+        done(null, user);
     });
 
     // deserializer
     passport.deserializeUser(function (user, done) {
-        done(user);
+        done(null,user);
     })
 
     // login
