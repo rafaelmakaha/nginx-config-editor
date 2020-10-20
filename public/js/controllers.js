@@ -2,7 +2,6 @@ var ctrl = angular.module('controllers', ['directives']);
 
 ctrl.controller('indexController', function ($scope) {
   var editor = ace.edit("editor");
-  editor.setTheme("ace/theme/clouds");
   editor.getSession().setMode("ace/mode/text");
 
   var socket = io();
@@ -26,6 +25,11 @@ ctrl.controller('indexController', function ($scope) {
   });
   
   socket.on('show-config', function(obj) {
+    editor.setValue(obj.data);
+    $("#name").val(obj.file);
+  });
+  
+  socket.on('load-config', function(obj) {
     editor.setValue(obj.data);
     $("#name").val(obj.file);
   });
@@ -105,5 +109,10 @@ ctrl.controller('indexController', function ($scope) {
   $('#checksyntax').click(function () {
     var action = "check"
     socket.emit('check-syntax', action);
+  });
+
+  $('#loadconfig').click(function () {
+    var action = "config"
+    socket.emit('load-config', action);
   });
 });
